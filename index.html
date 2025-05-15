@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Business API CRM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: #f5f5f5;
+        }
+        
+        .header {
+            background: #128C7E; /* WhatsApp dark green */
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .iframe-container {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        #crm-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+        
+        .loader {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 10;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #25D366;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .footer {
+            background: #2C3E50;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>WhatsApp Business API CRM</h1>
+    </div>
+    
+    <div class="iframe-container">
+        <!-- Loading spinner -->
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+        </div>
+        
+        <!-- Full-screen iframe -->
+        <iframe 
+            id="crm-iframe"
+            src="https://script.google.com/macros/s/AKfycbxCDXK2MrBNStubUk3pFIgNB-TJRydPbBcPya6go56BhnZuz8HH0dI1IacLj2I8V38ZyA/exec"
+            onload="document.getElementById('loader').style.display='none';"
+        ></iframe>
+    </div>
+    
+    <div class="footer">
+        Powered by SRLINES SOFTWARE HOUSE (SMC-PRIVATE) LIMITED
+    </div>
+
+    <script>
+        // Optional: Force iframe to reload periodically (every 30 minutes)
+        // setInterval(() => {
+        //     document.getElementById('loader').style.display = 'flex';
+        //     document.getElementById('crm-iframe').src = document.getElementById('crm-iframe').src;
+        // }, 1800000);
+    </script>
+</body>
+</html>
