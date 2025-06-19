@@ -62,7 +62,7 @@
 <script>
 const appId = '6673587296096434'; // Your App ID
 const redirectUri = 'https://cloudapi.srlines.net'; // Your Redirect URI
-const scopes = 'business_management,whatsapp_business_management,whatsapp_messaging,public_profile';
+const scopes = 'business_management,whatsapp_business_management,whatsapp_business_messaging,public_profile';
 
 document.getElementById('signupButton').addEventListener('click', () => {
     const authUrl = `https://www.facebook.com/v22.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&response_type=token`;
