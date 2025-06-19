@@ -1,112 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WhatsApp Cloud API Signup - SRLines Software House</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width">
+<title>WhatsApp Embedded Signup (Client‑Only)</title>
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #f4f7fa;
-        color: #333;
-        padding: 20px;
-    }
-    h1 {
-        color: #075E54;
-    }
-    #infoBox {
-        background: #fff;
-        border: 1px solid #ddd;
-        padding: 15px;
-        border-radius: 8px;
-        margin-top: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        overflow-x: auto;
-        max-width: 100%;
-    }
-    .uncopyable {
-        user-select: none;
-        font-weight: bold;
-        color: #666;
-    }
-    #copyButton {
-        background-color: #25D366;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        margin-top: 10px;
-        cursor: pointer;
-        border-radius: 5px;
-    }
-    #copyButton:hover {
-        background-color: #1ebe5d;
-    }
+  body{font:16px Arial;padding:20px;background:#f4f7fa}
+  button{padding:10px 20px;color:#fff;background:#25D366;border:0;border-radius:5px;cursor:pointer;}
+  .box{display:none;margin-top:20px;padding:15px;background:#fff;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+  .uncopyable{user-select:none;font-weight:bold;}
+  .field{margin:6px 0;}
 </style>
 </head>
 <body>
-
-<h1>WhatsApp Cloud API Signup</h1>
-
-<p>Click the button below to sign up your WhatsApp Business Account using Meta WhatsApp Cloud API:</p>
-
-<button id="signupButton">Sign Up with WhatsApp Cloud API</button>
-
-<div id="infoBox" style="display:none;">
-    <div><span class="uncopyable">Timestamp:</span> <span id="timestamp"></span></div>
-    <div><span class="uncopyable">Name:</span> <span id="name"></span></div>
-    <div><span class="uncopyable">Status:</span> <span id="status"></span></div>
-    <pre id="copyableInfo"></pre>
-    <button id="copyButton">Copy Info</button>
+<h2>WhatsApp Embedded Signup (Client‑Only)</h2>
+<button onclick="startSignup()">Start Signup</button>
+<div id="box" class="box">
+  <div class="field"><span class="uncopyable">Timestamp:</span> <span id="ts"></span></div>
+  <div class="field"><span class="uncopyable">Name:</span> <span id="nm"></span></div>
+  <div class="field"><span class="uncopyable">Status:</span> <span id="st"></span></div>
+  <div class="field"><label>Business_Account_ID: <input id="bid" readonly></label></div>
+  <div class="field"><label>WABA_ID: <input id="waba" readonly></label></div>
+  <div class="field"><label>Access_Token: <input id="tok" readonly></label></div>
+  <div class="field"><label>Phone_ID: <input id="phone" readonly></label></div>
+  <div class="field"><label>App_ID: <input id="appid" readonly></label></div>
 </div>
 
+<script src="https://connect.facebook.net/en_US/sdk.js"></script>
 <script>
-const appId = '6673587296096434'; // Your App ID
-const redirectUri = 'https://cloudapi.srlines.net'; // Your Redirect URI
-const scopes = 'business_management,whatsapp_business_management,whatsapp_business_messaging,public_profile';
+  const APP_ID = '6673587296096434';
+  const CONFIG_ID = '168882059638822'; // from Facebook Login for Business
+  const REDIRECT_URI = 'https://cloudapi.srlines.net';
 
-document.getElementById('signupButton').addEventListener('click', () => {
-    const authUrl = `https://www.facebook.com/v22.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&response_type=token`;
-    window.open(authUrl);
-});
+  window.fbAsyncInit = function() {
+    FB.init({ appId: APP_ID, cookie: true, version: 'v22.0' });
+  };
 
-// Simulate OAuth Return Example (Replace this block with your server-side handling of token return)
-window.onload = function() {
-    // Mock sample data as if returned after successful onboarding (Replace this with your real API response)
-    const urlParams = new URLSearchParams(window.location.hash.substr(1));
-    const accessToken = urlParams.get('access_token') || 'EAAGb...sample...token'; // Replace in real case
-    const businessAccountId = '123456789101112';
-    const wabaId = '123456789987654';
-    const phoneId = '987654321234567';
-    const status = 'Connected';
-    const name = 'Client ABC'; // dynamic or hard-coded
-    const appId = '6673587296096434';
+  async function startSignup() {
+    FB.login(async resp => {
+      if (!resp.authResponse?.code) return alert('Signup canceled or failed.');
+      const code = resp.authResponse.code;
+      try {
+        const tokenResp = await FB.api('/oauth/access_token', 'GET', {
+          client_id: APP_ID,
+          redirect_uri: REDIRECT_URI,
+          code,
+          config_id: CONFIG_ID
+        });
+        const accessToken = tokenResp.access_token;
+        const profile = await FB.api('/me', { fields: 'name', access_token: accessToken });
+        const debug = await FB.api('/debug_token', { input_token: accessToken, access_token: accessToken });
+        const wabaId = debug.data.granular_scopes
+                          .find(s => s.scope==='whatsapp_business_management')?.target_ids[0];
+        const phoneResp = await FB.api(`/${wabaId}/phone_numbers`, { access_token: accessToken });
+        const phoneId = phoneResp.data?.[0]?.id || '';
 
-    if (accessToken) {
-        const timestamp = new Date().toLocaleString();
-
-        document.getElementById('timestamp').textContent = timestamp;
-        document.getElementById('name').textContent = name;
-        document.getElementById('status').textContent = status;
-
-        const copyableContent = 
-`Business_Account_ID: ${businessAccountId}
-WABA_ID: ${wabaId}
-Access_Token: ${accessToken}
-Phone_ID: ${phoneId}
-App_ID: ${appId}`;
-
-        document.getElementById('copyableInfo').textContent = copyableContent;
-        document.getElementById('infoBox').style.display = 'block';
-    }
-};
-
-document.getElementById('copyButton').addEventListener('click', () => {
-    const text = document.getElementById('copyableInfo').textContent;
-    navigator.clipboard.writeText(text).then(() => {
-        alert('Info copied to clipboard!');
+        document.getElementById('ts').innerText = new Date().toLocaleString();
+        document.getElementById('nm').innerText = profile.name;
+        document.getElementById('st').innerText = 'Connected';
+        document.getElementById('bid').value = debug.data.app_id;
+        document.getElementById('waba').value = wabaId || '';
+        document.getElementById('tok').value = accessToken;
+        document.getElementById('phone').value = phoneId;
+        document.getElementById('appid').value = APP_ID;
+        document.getElementById('box').style.display = 'block';
+      } catch (e) {
+        alert('Error completing signup: ' + e.message);
+      }
+    }, {
+      config_id: CONFIG_ID,
+      response_type: 'code',
+      override_default_response_type: true,
+      scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging,public_profile',
+      extras: { feature: 'whatsapp_embedded_signup', featureType: 'only_waba_sharing', version:2 }
     });
-});
+  }
 </script>
-
 </body>
 </html>
