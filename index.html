@@ -1,121 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WhatsApp Cloud API Signup (Debug)</title>
-  <style>
-    body { font-family: Arial; padding: 20px; background: #f4f7fa; }
-    button { padding:10px 20px; background:#25D366; color:white; border:none; border-radius:5px; cursor:pointer; }
-    .output { margin:10px 0; padding:10px; background:#fff; border:1px solid #ccc; border-radius:5px; }
-    .uncopyable { user-select: none; font-weight:bold; }
-    input { width: 100%; padding: 5px; margin: 4px 0; }
-  </style>
+  <meta charset="UTF-8">
+  <title>WhatsApp Cloud API Signup</title>
 </head>
 <body>
+  <button onclick="startWhatsAppSignup()">Start WhatsApp Setup Wizard</button>
+  <div id="output" style="margin-top:20px; font-family:Arial;"></div>
 
-<h2>WhatsApp Cloud API Embedded Signup (Debug Mode)</h2>
+  <script src="https://connect.facebook.net/en_US/sdk.js"></script>
+  <script>
+    const APP_ID = '6673587296096434';
+    const CONFIG_ID = '168882059638822';
+    const BACKEND_URL = 'https://waba-exchange-863732001414.us-central1.run.app/exchange_code';
 
-<button onclick="startWhatsAppSignup()">Start WhatsApp Setup Wizard</button>
+    window.fbAsyncInit = function() {
+      FB.init({ appId: APP_ID, cookie: true, xfbml: false, version: 'v22.0' });
+      console.log('FB SDK Initialized');
+    };
 
-<div id="info" style="display:none; margin-top:20px;">
-  <div><span class="uncopyable">Timestamp:</span> <span id="ts"></span></div>
-  <div><span class="uncopyable">Name:</span> <span id="nm"></span></div>
-  <div><span class="uncopyable">Status:</span> <span id="st"></span></div>
+    function startWhatsAppSignup() {
+      FB.login(function(response) {
+        console.log('FB.login Response:', response);
+        const token = response.authResponse?.accessToken;
+        if (!token) return alert('No accessToken returned by Facebook');
 
-  <div class="output"><label>Business_Account_ID: <input id="bid" readonly></label></div>
-  <div class="output"><label>WABA_ID: <input id="waba" readonly></label></div>
-  <div class="output"><label>Access_Token: <input id="tok" readonly></label></div>
-  <div class="output"><label>Phone_ID: <input id="phone" readonly></label></div>
-  <div class="output"><label>App_ID: <input id="appid" readonly></label></div>
-</div>
-
-<div id="doclink" style="display:none; margin-top:20px;">
-  <p>If you don't have a WhatsApp Business Account (WABA), please create one manually:</p>
-  <a href="https://developers.facebook.com/docs/whatsapp/cloud-api/get-started" target="_blank">WhatsApp Cloud API Setup Guide</a>
-</div>
-
-<script src="https://connect.facebook.net/en_US/sdk.js"></script>
-<script>
-  const APP_ID = '6673587296096434';
-  const CONFIG_ID = '168882059638822';
-  const REDIRECT_URI = 'https://cloudapi.srlines.net';
-  const BACKEND_URL = 'https://waba-exchange-863732001414.us-central1.run.app/exchange_code';
-
-  window.fbAsyncInit = function() {
-    FB.init({ appId: APP_ID, cookie: true, xfbml: false, version: 'v22.0' });
-    console.log('FB SDK Initialized with APP_ID:', APP_ID);
-  };
-
-  function startWhatsAppSignup() {
-    console.log('Starting WhatsApp Embedded Signup Wizard...');
-    FB.login(function(response) {
-      console.log('FB.login Response:', response);
-
-      if (!response.authResponse || !response.authResponse.code) {
-        console.error('No authResponse or code received from FB.login');
-        alert('Signup failed or cancelled.');
-        document.getElementById('doclink').style.display = 'block';
-        return;
-      }
-
-      const code = response.authResponse.code;
-      console.log('Code received from Facebook:', code);
-      exchangeCode(code);
-    }, {
-      config_id: CONFIG_ID,
-      response_type: 'code',
-      override_default_response_type: true,
-      scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging,public_profile'
-    });
-  }
-
-  async function exchangeCode(code) {
-    console.log('Preparing to send to backend:', {
-      code: code,
-      redirect_uri: REDIRECT_URI
-    });
-
-    try {
-      const res = await fetch(BACKEND_URL, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({
-          code: code,
-          redirect_uri: REDIRECT_URI
+        console.log('Sending accessToken to backend:', token);
+        fetch(BACKEND_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: token })
         })
+        .then(res => res.json())
+        .then(data => {
+          console.log('Backend Response:', data);
+          document.getElementById('output').innerHTML = `
+            <p><strong>Business Account ID:</strong> ${data.business_account_id}</p>
+            <p><strong>WABA ID:</strong> ${data.waba_id}</p>
+            <p><strong>Phone ID:</strong> ${data.phone_id}</p>
+            <p><strong>Access Token:</strong> <input value="${data.access_token}" readonly></p>
+            <p><strong>App ID:</strong> ${data.app_id}</p>
+            <p><strong>Name:</strong> ${data.name}</p>
+            <p><strong>Status:</strong> ${data.status}</p>
+          `;
+        })
+        .catch(err => {
+          console.error('Backend error:', err);
+          document.getElementById('output').innerHTML = '<p style="color:red;">Error fetching data from backend.</p>';
+        });
+      }, {
+        config_id: CONFIG_ID,
+        scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging,public_profile'
       });
-
-      console.log('Backend HTTP Response Status:', res.status);
-
-      const data = await res.json();
-      console.log('Backend JSON Response:', data);
-
-      if (res.status !== 200) {
-        console.error('Backend error:', data);
-        alert('Backend Error: ' + JSON.stringify(data));
-        document.getElementById('doclink').style.display = 'block';
-        return;
-      }
-
-      document.getElementById('ts').textContent = new Date().toLocaleString();
-      document.getElementById('nm').textContent = data.name || 'Unknown';
-      document.getElementById('st').textContent = data.status || 'Unknown';
-
-      document.getElementById('bid').value = data.business_account_id || '';
-      document.getElementById('waba').value = data.waba_id || '';
-      document.getElementById('tok').value = data.access_token || '';
-      document.getElementById('phone').value = data.phone_id || '';
-      document.getElementById('appid').value = data.app_id || '';
-
-      document.getElementById('info').style.display = 'block';
-    } catch (err) {
-      console.error('Fetch error when contacting backend:', err);
-      alert('Error exchanging code: ' + err.message);
-      document.getElementById('doclink').style.display = 'block';
     }
-  }
-</script>
-
+  </script>
 </body>
 </html>
