@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WhatsApp Cloud API Signup</title>
+  <title>WhatsApp Cloud API Signup (Debug)</title>
   <style>
     body { font-family: Arial; padding: 20px; background: #f4f7fa; }
     button { padding:10px 20px; background:#25D366; color:white; border:none; border-radius:5px; cursor:pointer; }
@@ -14,7 +14,7 @@
 </head>
 <body>
 
-<h2>WhatsApp Cloud API Embedded Signup</h2>
+<h2>WhatsApp Cloud API Embedded Signup (Debug Mode)</h2>
 
 <button onclick="startWhatsAppSignup()">Start WhatsApp Setup Wizard</button>
 
@@ -38,23 +38,29 @@
 <script src="https://connect.facebook.net/en_US/sdk.js"></script>
 <script>
   const APP_ID = '6673587296096434';
-  const CONFIG_ID = '168882059638822'; // Your WhatsApp embedded signup config ID
+  const CONFIG_ID = '168882059638822';
   const REDIRECT_URI = 'https://cloudapi.srlines.net';
   const BACKEND_URL = 'https://waba-exchange-863732001414.us-central1.run.app/exchange_code';
 
   window.fbAsyncInit = function() {
     FB.init({ appId: APP_ID, cookie: true, xfbml: false, version: 'v22.0' });
+    console.log('FB SDK Initialized with APP_ID:', APP_ID);
   };
 
   function startWhatsAppSignup() {
+    console.log('Starting WhatsApp Embedded Signup Wizard...');
     FB.login(function(response) {
+      console.log('FB.login Response:', response);
+
       if (!response.authResponse || !response.authResponse.code) {
+        console.error('No authResponse or code received from FB.login');
         alert('Signup failed or cancelled.');
         document.getElementById('doclink').style.display = 'block';
         return;
       }
 
       const code = response.authResponse.code;
+      console.log('Code received from Facebook:', code);
       exchangeCode(code);
     }, {
       config_id: CONFIG_ID,
@@ -65,13 +71,32 @@
   }
 
   async function exchangeCode(code) {
+    console.log('Preparing to send to backend:', {
+      code: code,
+      redirect_uri: REDIRECT_URI
+    });
+
     try {
       const res = await fetch(BACKEND_URL, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ code, redirect_uri: REDIRECT_URI })
+        body: JSON.stringify({
+          code: code,
+          redirect_uri: REDIRECT_URI
+        })
       });
+
+      console.log('Backend HTTP Response Status:', res.status);
+
       const data = await res.json();
+      console.log('Backend JSON Response:', data);
+
+      if (res.status !== 200) {
+        console.error('Backend error:', data);
+        alert('Backend Error: ' + JSON.stringify(data));
+        document.getElementById('doclink').style.display = 'block';
+        return;
+      }
 
       document.getElementById('ts').textContent = new Date().toLocaleString();
       document.getElementById('nm').textContent = data.name || 'Unknown';
@@ -85,7 +110,8 @@
 
       document.getElementById('info').style.display = 'block';
     } catch (err) {
-      alert('Error exchanging code: ' + err);
+      console.error('Fetch error when contacting backend:', err);
+      alert('Error exchanging code: ' + err.message);
       document.getElementById('doclink').style.display = 'block';
     }
   }
