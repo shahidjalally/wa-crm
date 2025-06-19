@@ -1,62 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>WhatsApp Cloud API Signup</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WhatsApp Cloud API Signup Wizard</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f7fa; padding: 20px; color: #333; }
+    h2 { color: #2c3e50; }
+    button {
+      padding: 12px 20px;
+      background: #25D366;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .output { margin: 15px 0; padding: 10px; background: #fff; border: 1px solid #ddd; border-radius: 5px; }
+    .uncopyable { user-select: none; font-weight: bold; color: #555; }
+    .field { margin: 8px 0; }
+    input {
+      width: 100%; padding: 8px; border: 1px solid #ccc;
+      border-radius: 4px; background: #fafafa; font-family: monospace;
+    }
+  </style>
 </head>
 <body>
-  <button onclick="startWhatsAppSignup()">Start WhatsApp Setup Wizard</button>
-  <div id="output" style="margin-top:20px; font-family:Arial;"></div>
 
-  <script src="https://connect.facebook.net/en_US/sdk.js"></script>
-  <script>
-    const APP_ID = '6673587296096434';
-    const CONFIG_ID = '168882059638822';
-    const REDIRECT_URI = 'https://cloudapi.srlines.net';
-    const BACKEND_URL = 'https://waba-exchange-863732001414.us-central1.run.app/exchange_code';
+<h2>WhatsApp Cloud API Embedded Signup</h2>
 
-    window.fbAsyncInit = function() {
-      FB.init({ appId: APP_ID, cookie: true, xfbml: false, version: 'v22.0' });
-      console.log('FB SDK Initialized');
-    };
+<button onclick="startWhatsAppSignup()">Start WhatsApp Setup Wizard</button>
 
-    function startWhatsAppSignup() {
-      console.log('Starting WhatsApp Embedded Signup Wizard...');
-      FB.login(function(response) {
-        console.log('FB.login Response:', response);
-        const code = response.authResponse?.code;
-        if (!code) return alert('No OAuth code returned by Facebook');
+<div id="info" style="display:none;">
+  <div class="field"><span class="uncopyable">Timestamp:</span> <span id="ts"></span></div>
+  <div class="field"><span class="uncopyable">Name:</span> <span id="nm"></span></div>
+  <div class="field"><span class="uncopyable">Status:</span> <span id="st"></span></div>
 
-        console.log('OAuth Code received from Facebook:', code);
-        fetch(BACKEND_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: code })
-        })
-        .then(res => res.json())
-        .then(data => {
-          console.log('Backend Response:', data);
-          document.getElementById('output').innerHTML = `
-            <p><strong>Business Account ID:</strong> ${data.business_account_id}</p>
-            <p><strong>WABA ID:</strong> ${data.waba_id}</p>
-            <p><strong>Phone ID:</strong> ${data.phone_id}</p>
-            <p><strong>Access Token:</strong> <input value="${data.access_token}" readonly></p>
-            <p><strong>App ID:</strong> ${data.app_id}</p>
-            <p><strong>Name:</strong> ${data.name}</p>
-            <p><strong>Status:</strong> ${data.status}</p>
-          `;
-        })
-        .catch(err => {
-          console.error('Backend error:', err);
-          document.getElementById('output').innerHTML = '<p style="color:red;">Error fetching data from backend.</p>';
-        });
-      }, {
-        config_id: CONFIG_ID,
-        response_type: 'code',
-        override_default_response_type: true,
-        scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging,public_profile'
+  <div class="output"><label>Business_Account_ID: <input id="bid" readonly></label></div>
+  <div class="output"><label>WABA_ID: <input id="waba" readonly></label></div>
+  <div class="output"><label>Access_Token: <input id="tok" readonly></label></div>
+  <div class="output"><label>Phone_ID: <input id="phone" readonly></label></div>
+  <div class="output"><label>App_ID: <input id="appid" readonly></label></div>
+</div>
+
+<div id="doclink" style="display:none; margin-top:20px;">
+  <p>If you don't have a WhatsApp Business Account (WABA), please follow:</p>
+  <a href="https://developers.facebook.com/docs/whatsapp/cloud-api/get-started" target="_blank">
+    WhatsApp Cloud API Setup Guide
+  </a>
+</div>
+
+<script src="https://connect.facebook.net/en_US/sdk.js"></script>
+<script>
+  const APP_ID = '6673587296096434';
+  const CONFIG_ID = '168882059638822';
+  const BACKEND_URL = 'https://waba-exchange-863732001414.us-central1.run.app/exchange_code';
+
+  window.fbAsyncInit = function() {
+    FB.init({ appId: APP_ID, cookie: true, xfbml: false, version: 'v22.0' });
+    console.log('FB SDK Initialized');
+  };
+
+  function startWhatsAppSignup() {
+    console.log('Starting WhatsApp Embedded Signup Wizard...');
+    FB.login(function(response) {
+      console.log('FB.login Response:', response);
+      const code = response.authResponse?.code;
+      if (!code) {
+        alert('No OAuth code received from Facebook.');
+        document.getElementById('doclink').style.display = 'block';
+        return;
+      }
+
+      console.log('OAuth Code received:', code);
+
+      fetch(BACKEND_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ code })
+      })
+      .then(res => res.json())
+      .then(data => {
+        console.log('Backend Response:', data);
+
+        document.getElementById('ts').textContent = new Date().toLocaleString();
+        document.getElementById('nm').textContent = data.name || 'Unknown';
+        document.getElementById('st').textContent = data.status || 'Unknown';
+
+        document.getElementById('bid').value = data.business_account_id || '';
+        document.getElementById('waba').value = data.waba_id || '';
+        document.getElementById('tok').value = data.access_token || '';
+        document.getElementById('phone').value = data.phone_id || '';
+        document.getElementById('appid').value = data.app_id || '';
+
+        document.getElementById('info').style.display = 'block';
+      })
+      .catch(err => {
+        console.error('Backend Error:', err);
+        alert('Error occurred while contacting backend.');
+        document.getElementById('doclink').style.display = 'block';
       });
-    }
-  </script>
+    }, {
+      config_id: CONFIG_ID,
+      response_type: 'code',
+      override_default_response_type: true,
+      scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging,public_profile'
+    });
+  }
+</script>
+
 </body>
 </html>
