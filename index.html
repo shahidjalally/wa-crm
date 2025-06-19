@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Cloud API Signup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.com/npm/clipboard@2.0.11/dist/clipboard.min.js"></script>
+    <style>
+        .non-copyable {
+            user-select: none;
+            pointer-events: none;
+        }
+        .copyable {
+            cursor: pointer;
+        }
+        .copyable:hover {
+            background-color: #e5e7eb;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-2xl">
+        <h1 class="text-3xl font-bold text-center mb-6">WhatsApp Business</h1>
+        <div id="signup-section" class="text-center">
+            <button id="signup-button" class="bg-blue-600 text-white font-semibold rounded-lg px-6 py-3 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                Sign Up with Meta
+            </button>
+        </div>
+        <div id="result-section" class="hidden mt-6">
+            <h2 class="text-xl font-semibold mb-4">Signup Details</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border border-gray-200">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="px-4 py-2 text-left non-copyable">Timestamp</th>
+                            <th class="px-4 py-2 text-left non-copyable">Name</th>
+                            <th class="px-4 py-2 text-left">Business_Account_ID</th>
+                            <th class="px-4 py-2 text-left">WABA_ID</th>
+                            <th class="px-4 py-2 text-left">Access_Token</th>
+                            <th class="px-4 py-2 text-left">Phone_ID</th>
+                            <th class="px-4 py-2 text-left">App_ID</th>
+                            <th class="px-4 py-2 text-left non-copyable">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="result-table-body">
+                        <!-- Results will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-4 text-center">
+                <button id="copy-button" class="bg-green-600 text-white font-semibold rounded-lg px-6 py-2 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    Copy Selected Fields
+                </button>
+            </div>
+        </div>
+        <div id="error-section" class="hidden mt-4 text-red-600 text-center">
+            <!-- Error messages will appear here -->
+        </div>
+    </div>
+
+    <script>
+        // Replace with your Meta App ID
+        const APP_ID = '6673587296096434';
+        const REDIRECT_URI = encodeURIComponent(window.location.href);
+        const API_VERSION = 'v22.0';
+        const SCOPES = 'business_management,whatsapp_business_management,whatsapp_business_messaging,public_profile';
+
+        // Handle Meta OAuth flow
+        document.getElementById('signup-button').addEventListener('click', () => {
+            const authUrl = `https://www.facebook.com/v${API_VERSION}/dialog/oauth?client_id=${APP_ID}&redirect_uri=${REDIRECT_URI}&scope=${SCOPES}&response_type=code`;
+            window.location.href = authUrl;
+        });
+
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const error = urlParams.get('error_description');
+
+        if (error) {
+            showError(error);
+        } else if (code) {
+            processAuthCode(code);
+        }
+
+        async function processAuthCode(code) {
+            try {
+                // Exchange code for access token
+                const tokenResponse = await fetch(`https://graph.facebook.com/v${API_VERSION}/oauth/access_token?client_id=${APP_ID}&redirect_uri=${REDIRECT_URI}&client_secret=1f1dac9d8066ecd43ff37d3341c71974&code=${code}`);
+                const tokenData = await tokenResponse.json();
+                if (tokenData.error) throw new Error(tokenData.error.message);
+                const accessToken = tokenData.access_token;
+
+                // Get user profile
+                const userResponse = await fetch(`https://graph.facebook.com/v${API_VERSION}/me?fields=id,name&access_token=${accessToken}`);
+                const userData = await userResponse.json();
+                if (userData.error) throw new Error(userData.error.message);
+                const userName = userData.name;
+
+                // Get business accounts
+                const businessResponse = await fetch(`https://graph.facebook.com/v${API_VERSION}/me/businesses?fields=id,name&access_token=${accessToken}`);
+                const businessData = await businessResponse.json();
+                if (businessData.error) throw new Error(businessData.error.message);
+                const businessAccount = businessData.data[0];
+                const businessAccountId = businessAccount ? businessAccount.id : 'N/A';
+
+                // Get WhatsApp Business Accounts (WABA)
+                const wabaResponse = await fetch(`https://graph.facebook.com/v${API_VERSION}/${businessAccountId}/whatsapp_business_accounts?access_token=${accessToken}`);
+                const wabaData = await wabaResponse.json();
+                if (wabaData.error) throw new Error(wabaData.error.message);
+                const wabaId = wabaData.data[0] ? wabaData.data[0].id : 'N/A';
+
+                // Get phone numbers
+                let phoneId = 'N/A';
+                if (wabaId !== 'N/A') {
+                    const phoneResponse = await fetch(`https://graph.facebook.com/v${API_VERSION}/${wabaId}/phone_numbers?access_token=${accessToken}`);
+                    const phoneData = await phoneResponse.json();
+                    if (phoneData.error) throw new Error(phoneData.error.message);
+                    phoneId = phoneData.data[0] ? phoneData.data[0].id : 'N/A';
+                }
+
+                // Prepare result
+                const timestamp = new Date().toISOString();
+                const status = 'Active';
+                const result = {
+                    timestamp,
+                    name: userName,
+                    businessAccountId,
+                    wabaId,
+                    accessToken,
+                    phoneId,
+                    appId: APP_ID,
+                    status
+                };
+
+                displayResult(result);
+                setupCopyButton(result);
+            } catch (err) {
+                showError(`Error: ${err.message}`);
+            }
+        }
+
+        function displayResult(data) {
+            const tableBody = document.getElementById('result-table-body');
+            tableBody.innerHTML = `
+                <tr>
+                    <td class="px-4 py-2 non-copyable">${data.timestamp}</td>
+                    <td class="px-4 py-2 non-copyable">${data.name}</td>
+                    <td class="px-4 py-2 copyable" data-clipboard-text="${data.businessAccountId}">${data.businessAccountId}</td>
+                    <td class="px-4 py-2 copyable" data-clipboard-text="${data.wabaId}">${data.wabaId}</td>
+                    <td class="px-4 py-2 copyable" data-clipboard-text="${data.accessToken}">${data.accessToken}</td>
+                    <td class="px-4 py-2 copyable" data-clipboard-text="${data.phoneId}">${data.phoneId}</td>
+                    <td class="px-4 py-2 copyable" data-clipboard-text="${data.appId}">${data.appId}</td>
+                    <td class="px-4 py-2 non-copyable">${data.status}</td>
+                </tr>
+            `;
+            document.getElementById('result-section').classList.remove('hidden');
+            document.getElementById('signup-section').classList.add('hidden');
+        }
+
+        function setupCopyButton(data) {
+            const copyText = `Business_Account_ID: ${data.businessAccountId}\nWABA_ID: ${data.wabaId}\nAccess_Token: ${data.accessToken}\nPhone_ID: ${data.phoneId}\nApp_ID: ${data.appId}`;
+            new ClipboardJS('#copy-button', {
+                text: () => copyText
+            }).on('success', () => {
+                alert('Copied to clipboard!');
+            }).on('error', () => {
+                alert('Failed to copy. Please copy manually.');
+            });
+        }
+
+        function showError(message) {
+            const errorSection = document.getElementById('error-section');
+            errorSection.textContent = message;
+            errorSection.classList.remove('hidden');
+            document.getElementById('signup-section').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
