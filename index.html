@@ -1,79 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width">
-<title>WhatsApp Embedded Signup (Client‑Only)</title>
-<style>
-  body{font:16px Arial;padding:20px;background:#f4f7fa}
-  button{padding:10px 20px;color:#fff;background:#25D366;border:0;border-radius:5px;cursor:pointer;}
-  .box{display:none;margin-top:20px;padding:15px;background:#fff;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-  .uncopyable{user-select:none;font-weight:bold;}
-  .field{margin:6px 0;}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WhatsApp Cloud API Signup</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f4f7fa; }
+    button { padding:10px 20px; background:#25D366; color:white; border:none; border-radius:5px; cursor:pointer; }
+    .output { margin:10px 0; padding:10px; background:#fff; border:1px solid #ccc; border-radius:5px; }
+    .uncopyable { user-select: none; font-weight:bold; }
+    input { width: 100%; padding: 5px; margin: 4px 0; }
+  </style>
 </head>
 <body>
-<h2>WhatsApp Embedded Signup (Client‑Only)</h2>
-<button onclick="startSignup()">Start Signup</button>
-<div id="box" class="box">
-  <div class="field"><span class="uncopyable">Timestamp:</span> <span id="ts"></span></div>
-  <div class="field"><span class="uncopyable">Name:</span> <span id="nm"></span></div>
-  <div class="field"><span class="uncopyable">Status:</span> <span id="st"></span></div>
-  <div class="field"><label>Business_Account_ID: <input id="bid" readonly></label></div>
-  <div class="field"><label>WABA_ID: <input id="waba" readonly></label></div>
-  <div class="field"><label>Access_Token: <input id="tok" readonly></label></div>
-  <div class="field"><label>Phone_ID: <input id="phone" readonly></label></div>
-  <div class="field"><label>App_ID: <input id="appid" readonly></label></div>
+
+<h2>WhatsApp Cloud API Embedded Signup</h2>
+
+<button onclick="startWhatsAppSignup()">Start WhatsApp Setup Wizard</button>
+
+<div id="info" style="display:none; margin-top:20px;">
+  <div><span class="uncopyable">Timestamp:</span> <span id="ts"></span></div>
+  <div><span class="uncopyable">Name:</span> <span id="nm"></span></div>
+  <div><span class="uncopyable">Status:</span> <span id="st"></span></div>
+
+  <div class="output"><label>Business_Account_ID: <input id="bid" readonly></label></div>
+  <div class="output"><label>WABA_ID: <input id="waba" readonly></label></div>
+  <div class="output"><label>Access_Token: <input id="tok" readonly></label></div>
+  <div class="output"><label>Phone_ID: <input id="phone" readonly></label></div>
+  <div class="output"><label>App_ID: <input id="appid" readonly></label></div>
+</div>
+
+<div id="doclink" style="display:none; margin-top:20px;">
+  <p>If you don't have a WhatsApp Business Account (WABA), please create one manually:</p>
+  <a href="https://developers.facebook.com/docs/whatsapp/cloud-api/get-started" target="_blank">WhatsApp Cloud API Setup Guide</a>
 </div>
 
 <script src="https://connect.facebook.net/en_US/sdk.js"></script>
 <script>
   const APP_ID = '6673587296096434';
-  const CONFIG_ID = '168882059638822'; // from Facebook Login for Business
+  const CONFIG_ID = '168882059638822'; // Your WhatsApp embedded signup config ID
   const REDIRECT_URI = 'https://cloudapi.srlines.net';
+  const BACKEND_URL = 'https://waba-exchange-863732001414.us-central1.run.app/exchange_code';
 
   window.fbAsyncInit = function() {
-    FB.init({ appId: APP_ID, cookie: true, version: 'v22.0' });
+    FB.init({ appId: APP_ID, cookie: true, xfbml: false, version: 'v22.0' });
   };
 
-  async function startSignup() {
-    FB.login(async resp => {
-      if (!resp.authResponse?.code) return alert('Signup canceled or failed.');
-      const code = resp.authResponse.code;
-      try {
-        const tokenResp = await FB.api('/oauth/access_token', 'GET', {
-          client_id: APP_ID,
-          redirect_uri: REDIRECT_URI,
-          code,
-          config_id: CONFIG_ID
-        });
-        const accessToken = tokenResp.access_token;
-        const profile = await FB.api('/me', { fields: 'name', access_token: accessToken });
-        const debug = await FB.api('/debug_token', { input_token: accessToken, access_token: accessToken });
-        const wabaId = debug.data.granular_scopes
-                          .find(s => s.scope==='whatsapp_business_management')?.target_ids[0];
-        const phoneResp = await FB.api(`/${wabaId}/phone_numbers`, { access_token: accessToken });
-        const phoneId = phoneResp.data?.[0]?.id || '';
-
-        document.getElementById('ts').innerText = new Date().toLocaleString();
-        document.getElementById('nm').innerText = profile.name;
-        document.getElementById('st').innerText = 'Connected';
-        document.getElementById('bid').value = debug.data.app_id;
-        document.getElementById('waba').value = wabaId || '';
-        document.getElementById('tok').value = accessToken;
-        document.getElementById('phone').value = phoneId;
-        document.getElementById('appid').value = APP_ID;
-        document.getElementById('box').style.display = 'block';
-      } catch (e) {
-        alert('Error completing signup: ' + e.message);
+  function startWhatsAppSignup() {
+    FB.login(function(response) {
+      if (!response.authResponse || !response.authResponse.code) {
+        alert('Signup failed or cancelled.');
+        document.getElementById('doclink').style.display = 'block';
+        return;
       }
+
+      const code = response.authResponse.code;
+      exchangeCode(code);
     }, {
       config_id: CONFIG_ID,
       response_type: 'code',
       override_default_response_type: true,
-      scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging,public_profile',
-      extras: { feature: 'whatsapp_embedded_signup', featureType: 'only_waba_sharing', version:2 }
+      scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging,public_profile'
     });
   }
+
+  async function exchangeCode(code) {
+    try {
+      const res = await fetch(BACKEND_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ code, redirect_uri: REDIRECT_URI })
+      });
+      const data = await res.json();
+
+      document.getElementById('ts').textContent = new Date().toLocaleString();
+      document.getElementById('nm').textContent = data.name || 'Unknown';
+      document.getElementById('st').textContent = data.status || 'Unknown';
+
+      document.getElementById('bid').value = data.business_account_id || '';
+      document.getElementById('waba').value = data.waba_id || '';
+      document.getElementById('tok').value = data.access_token || '';
+      document.getElementById('phone').value = data.phone_id || '';
+      document.getElementById('appid').value = data.app_id || '';
+
+      document.getElementById('info').style.display = 'block';
+    } catch (err) {
+      alert('Error exchanging code: ' + err);
+      document.getElementById('doclink').style.display = 'block';
+    }
+  }
 </script>
+
 </body>
 </html>
