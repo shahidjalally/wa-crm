@@ -1,3 +1,4 @@
+// ===================== index.html (Frontend - Final Fixed) =====================
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,6 +13,7 @@
   <script>
     const APP_ID = '6673587296096434';
     const CONFIG_ID = '168882059638822';
+    const REDIRECT_URI = 'https://cloudapi.srlines.net';
     const BACKEND_URL = 'https://waba-exchange-863732001414.us-central1.run.app/exchange_code';
 
     window.fbAsyncInit = function() {
@@ -20,16 +22,17 @@
     };
 
     function startWhatsAppSignup() {
+      console.log('Starting WhatsApp Embedded Signup Wizard...');
       FB.login(function(response) {
         console.log('FB.login Response:', response);
-        const token = response.authResponse?.accessToken;
-        if (!token) return alert('No accessToken returned by Facebook');
+        const code = response.authResponse?.code;
+        if (!code) return alert('No OAuth code returned by Facebook');
 
-        console.log('Sending accessToken to backend:', token);
+        console.log('OAuth Code received from Facebook:', code);
         fetch(BACKEND_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: token })
+          body: JSON.stringify({ code: code })
         })
         .then(res => res.json())
         .then(data => {
@@ -50,6 +53,8 @@
         });
       }, {
         config_id: CONFIG_ID,
+        response_type: 'code',
+        override_default_response_type: true,
         scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging,public_profile'
       });
     }
