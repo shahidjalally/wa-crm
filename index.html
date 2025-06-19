@@ -1,990 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Business API Onboarding</title>
-    <script src="https://sdk.accountkit.com/en_US/sdk.js"></script>
-    <style>
-        :root {
-            --primary-color: #25D366;
-            --secondary-color: #128C7E;
-            --dark-color: #075E54;
-            --light-color: #DCF8C6;
-            --error-color: #ff4444;
-            --success-color: #00C851;
-        }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background-color: #f5f5f5;
-            color: #333;
-            line-height: 1.6;
-        }
-        
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px 0;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        
-        .logo {
-            max-width: 150px;
-            margin-bottom: 15px;
-        }
-        
-        h1 {
-            color: var(--dark-color);
-            margin-bottom: 10px;
-        }
-        
-        .subtitle {
-            color: #666;
-            font-size: 1.1rem;
-        }
-        
-        .onboarding-steps {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
-            position: relative;
-        }
-        
-        .step {
-            text-align: center;
-            position: relative;
-            z-index: 1;
-            flex: 1;
-        }
-        
-        .step-number {
-            width: 40px;
-            height: 40px;
-            background-color: #ccc;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 10px;
-            font-weight: bold;
-        }
-        
-        .step.active .step-number {
-            background-color: var(--secondary-color);
-        }
-        
-        .step.completed .step-number {
-            background-color: var(--primary-color);
-        }
-        
-        .step-title {
-            font-size: 0.9rem;
-            color: #666;
-        }
-        
-        .step.active .step-title {
-            color: var(--dark-color);
-            font-weight: bold;
-        }
-        
-        .onboarding-steps::before {
-            content: '';
-            position: absolute;
-            top: 20px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background-color: #ccc;
-            z-index: 0;
-        }
-        
-        .progress-bar {
-            position: absolute;
-            top: 20px;
-            left: 0;
-            height: 2px;
-            background-color: var(--primary-color);
-            z-index: 1;
-            transition: width 0.3s ease;
-        }
-        
-        .step-content {
-            display: none;
-            background-color: white;
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        
-        .step-content.active {
-            display: block;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #444;
-        }
-        
-        input[type="text"],
-        input[type="email"],
-        input[type="tel"],
-        input[type="url"],
-        select,
-        textarea {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-        
-        input:focus,
-        select:focus,
-        textarea:focus {
-            border-color: var(--primary-color);
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(37, 211, 102, 0.2);
-        }
-        
-        .btn {
-            display: inline-block;
-            background-color: var(--primary-color);
-            color: white;
-            padding: 12px 25px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            text-align: center;
-            transition: background-color 0.3s;
-        }
-        
-        .btn:hover {
-            background-color: var(--secondary-color);
-        }
-        
-        .btn-secondary {
-            background-color: #6c757d;
-        }
-        
-        .btn-secondary:hover {
-            background-color: #5a6268;
-        }
-        
-        .btn-disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        
-        .action-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 30px;
-        }
-        
-        .error-message {
-            color: var(--error-color);
-            font-size: 0.9rem;
-            margin-top: 5px;
-            display: none;
-        }
-        
-        .success-message {
-            color: var(--success-color);
-            font-size: 0.9rem;
-            margin-top: 5px;
-            display: none;
-        }
-        
-        .checkbox-group {
-            margin-bottom: 15px;
-        }
-        
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-        }
-        
-        .checkbox-label input {
-            margin-right: 10px;
-        }
-        
-        .permissions-list {
-            margin: 20px 0;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-        }
-        
-        .permissions-list ul {
-            list-style-type: none;
-        }
-        
-        .permissions-list li {
-            padding: 5px 0;
-            display: flex;
-            align-items: center;
-        }
-        
-        .permissions-list li::before {
-            content: "✓";
-            color: var(--primary-color);
-            margin-right: 10px;
-            font-weight: bold;
-        }
-        
-        .results-container {
-            display: none;
-            margin-top: 30px;
-            background-color: white;
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        .results-header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        .results-header h2 {
-            color: var(--dark-color);
-            margin-bottom: 10px;
-        }
-        
-        .results-header p {
-            color: #666;
-        }
-        
-        .results-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        
-        .results-table th,
-        .results-table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        .results-table th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-        }
-        
-        .copyable {
-            cursor: pointer;
-            position: relative;
-        }
-        
-        .copyable:hover {
-            background-color: #f8f9fa;
-        }
-        
-        .copyable::after {
-            content: "📋";
-            margin-left: 8px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        
-        .copyable:hover::after {
-            opacity: 1;
-        }
-        
-        .copy-message {
-            position: absolute;
-            top: -25px;
-            left: 0;
-            background-color: #333;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        
-        .copyable.copied .copy-message {
-            opacity: 1;
-        }
-        
-        .non-copyable {
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-        
-        .loader {
-            display: none;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .whatsapp-embedded-signup {
-            margin: 30px 0;
-            text-align: center;
-        }
-        
-        .whatsapp-btn {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 12px 25px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            transition: background-color 0.3s;
-        }
-        
-        .whatsapp-btn:hover {
-            background-color: var(--secondary-color);
-        }
-        
-        .whatsapp-btn i {
-            margin-right: 10px;
-            font-size: 1.2rem;
-        }
-        
-        footer {
-            text-align: center;
-            margin-top: 50px;
-            padding: 20px 0;
-            border-top: 1px solid #e0e0e0;
-            color: #666;
-            font-size: 0.9rem;
-        }
-        
-        @media (max-width: 768px) {
-            .onboarding-steps {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .step {
-                margin-bottom: 20px;
-            }
-            
-            .onboarding-steps::before {
-                display: none;
-            }
-            
-            .progress-bar {
-                display: none;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-            }
-            
-            .btn {
-                width: 100%;
-                margin-bottom: 10px;
-            }
-        }
-    </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WhatsApp Cloud API Signup - SRLines Software House</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f7fa;
+        color: #333;
+        padding: 20px;
+    }
+    h1 {
+        color: #075E54;
+    }
+    #infoBox {
+        background: #fff;
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow-x: auto;
+        max-width: 100%;
+    }
+    .uncopyable {
+        user-select: none;
+        font-weight: bold;
+        color: #666;
+    }
+    #copyButton {
+        background-color: #25D366;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        margin-top: 10px;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+    #copyButton:hover {
+        background-color: #1ebe5d;
+    }
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <img src="https://static.xx.fbcdn.net/assets/?revision=811573587399955&name=desktop-accountkit-logo&density=1" alt="Meta Logo" class="logo">
-            <h1>WhatsApp Business API Onboarding</h1>
-            <p class="subtitle">Connect your business to WhatsApp using Meta's Cloud API</p>
-        </header>
-        
-        <div class="onboarding-steps">
-            <div class="progress-bar" id="progressBar" style="width: 0%;"></div>
-            <div class="step completed" id="step1">
-                <div class="step-number">1</div>
-                <div class="step-title">Business Info</div>
-            </div>
-            <div class="step" id="step2">
-                <div class="step-number">2</div>
-                <div class="step-title">WhatsApp Setup</div>
-            </div>
-            <div class="step" id="step3">
-                <div class="step-number">3</div>
-                <div class="step-title">Review & Connect</div>
-            </div>
-            <div class="step" id="step4">
-                <div class="step-number">4</div>
-                <div class="step-title">Complete</div>
-            </div>
-        </div>
-        
-        <!-- Step 1: Business Information -->
-        <div class="step-content active" id="stepContent1">
-            <h2>Business Information</h2>
-            <p>Please provide your business details to begin the WhatsApp Business API onboarding process.</p>
-            
-            <form id="businessInfoForm">
-                <div class="form-group">
-                    <label for="businessName">Business Name*</label>
-                    <input type="text" id="businessName" name="businessName" required>
-                    <div class="error-message" id="businessNameError">Please enter your business name</div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="businessEmail">Business Email*</label>
-                    <input type="email" id="businessEmail" name="businessEmail" required>
-                    <div class="error-message" id="businessEmailError">Please enter a valid email address</div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="businessPhone">Business Phone Number*</label>
-                    <input type="tel" id="businessPhone" name="businessPhone" required>
-                    <div class="error-message" id="businessPhoneError">Please enter a valid phone number</div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="businessWebsite">Business Website (optional)</label>
-                    <input type="url" id="businessWebsite" name="businessWebsite">
-                </div>
-                
-                <div class="form-group">
-                    <label for="businessIndustry">Industry*</label>
-                    <select id="businessIndustry" name="businessIndustry" required>
-                        <option value="">Select your industry</option>
-                        <option value="ecommerce">E-commerce</option>
-                        <option value="retail">Retail</option>
-                        <option value="healthcare">Healthcare</option>
-                        <option value="finance">Finance</option>
-                        <option value="education">Education</option>
-                        <option value="travel">Travel & Hospitality</option>
-                        <option value="technology">Technology</option>
-                        <option value="other">Other</option>
-                    </select>
-                    <div class="error-message" id="businessIndustryError">Please select your industry</div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="businessDescription">Business Description*</label>
-                    <textarea id="businessDescription" name="businessDescription" rows="4" required></textarea>
-                    <div class="error-message" id="businessDescriptionError">Please describe your business</div>
-                </div>
-                
-                <div class="checkbox-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="termsAgreement" name="termsAgreement" required>
-                        I agree to the <a href="#" target="_blank">Terms of Service</a> and <a href="#" target="_blank">Privacy Policy</a>*
-                    </label>
-                    <div class="error-message" id="termsAgreementError">You must agree to the terms to continue</div>
-                </div>
-                
-                <div class="action-buttons">
-                    <div></div> <!-- Empty div for spacing -->
-                    <button type="button" class="btn" id="nextBtn1">Next</button>
-                </div>
-            </form>
-        </div>
-        
-        <!-- Step 2: WhatsApp Setup -->
-        <div class="step-content" id="stepContent2">
-            <h2>WhatsApp Business Setup</h2>
-            <p>Connect your business to WhatsApp by authenticating with Meta and providing your WhatsApp Business details.</p>
-            
-            <div class="permissions-list">
-                <p>This application will request the following permissions:</p>
-                <ul>
-                    <li>Manage your WhatsApp Business Account (whatsapp_business_management)</li>
-                    <li>Send and receive WhatsApp messages (whatsapp_messaging)</li>
-                    <li>Access basic business information (business_management)</li>
-                    <li>Access your public profile (public_profile)</li>
-                </ul>
-            </div>
-            
-            <div class="whatsapp-embedded-signup">
-                <p>Click the button below to authenticate with Meta and connect your WhatsApp Business Account:</p>
-                <button class="whatsapp-btn" id="whatsappAuthBtn">
-                    <i class="fab fa-whatsapp"></i> Connect WhatsApp Business Account
-                </button>
-                <div class="loader" id="authLoader"></div>
-            </div>
-            
-            <div class="action-buttons">
-                <button type="button" class="btn btn-secondary" id="backBtn2">Back</button>
-                <button type="button" class="btn btn-disabled" id="nextBtn2" disabled>Next</button>
-            </div>
-        </div>
-        
-        <!-- Step 3: Review & Connect -->
-        <div class="step-content" id="stepContent3">
-            <h2>Review & Connect</h2>
-            <p>Please review your information before completing the setup process.</p>
-            
-            <div class="form-group">
-                <label for="displayName">WhatsApp Display Name*</label>
-                <input type="text" id="displayName" name="displayName" required>
-                <p class="help-text">This is the name that will be shown to customers in WhatsApp</p>
-                <div class="error-message" id="displayNameError">Please enter a display name</div>
-            </div>
-            
-            <div class="form-group">
-                <label for="phoneNumberId">Phone Number ID (auto-filled after authentication)</label>
-                <input type="text" id="phoneNumberId" name="phoneNumberId" readonly>
-            </div>
-            
-            <div class="form-group">
-                <label for="wabaId">WhatsApp Business Account ID (auto-filled after authentication)</label>
-                <input type="text" id="wabaId" name="wabaId" readonly>
-            </div>
-            
-            <div class="form-group">
-                <label for="businessAccountId">Business Account ID (auto-filled after authentication)</label>
-                <input type="text" id="businessAccountId" name="businessAccountId" readonly>
-            </div>
-            
-            <div class="checkbox-group">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="confirmDetails" name="confirmDetails" required>
-                    I confirm that all the information provided is accurate and I have the authority to connect this WhatsApp Business Account*
-                </label>
-                <div class="error-message" id="confirmDetailsError">You must confirm the details to continue</div>
-            </div>
-            
-            <div class="action-buttons">
-                <button type="button" class="btn btn-secondary" id="backBtn3">Back</button>
-                <button type="button" class="btn" id="completeBtn">Complete Setup</button>
-            </div>
-        </div>
-        
-        <!-- Step 4: Complete -->
-        <div class="step-content" id="stepContent4">
-            <h2>Setup Complete!</h2>
-            <p>Your WhatsApp Business Account has been successfully connected to our platform.</p>
-            
-            <div class="results-container" id="resultsContainer">
-                <div class="results-header">
-                    <i class="fas fa-check-circle" style="font-size: 50px; color: var(--primary-color); margin-bottom: 15px;"></i>
-                    <h2>Connection Successful</h2>
-                    <p>Below are your WhatsApp Business API credentials. Please copy and save them securely.</p>
-                </div>
-                
-                <table class="results-table">
-                    <thead>
-                        <tr>
-                            <th>Field</th>
-                            <th>Value</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="non-copyable">Timestamp</td>
-                            <td class="non-copyable" id="timestampField">-</td>
-                        </tr>
-                        <tr>
-                            <td class="non-copyable">Name</td>
-                            <td class="non-copyable" id="nameField">-</td>
-                        </tr>
-                        <tr>
-                            <td>Business_Account_ID</td>
-                            <td class="copyable" id="businessAccountIdField">
-                                <span>-</span>
-                                <span class="copy-message">Copied!</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>WABA_ID</td>
-                            <td class="copyable" id="wabaIdField">
-                                <span>-</span>
-                                <span class="copy-message">Copied!</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Access_Token</td>
-                            <td class="copyable" id="accessTokenField">
-                                <span>-</span>
-                                <span class="copy-message">Copied!</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Phone_ID</td>
-                            <td class="copyable" id="phoneIdField">
-                                <span>-</span>
-                                <span class="copy-message">Copied!</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>App_ID</td>
-                            <td class="copyable" id="appIdField">
-                                <span>-</span>
-                                <span class="copy-message">Copied!</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="non-copyable">Status</td>
-                            <td class="non-copyable" id="statusField">-</td>
-                        </tr>
-                    </tbody>
-                </table>
-                
-                <div style="margin-top: 30px; text-align: center;">
-                    <button class="btn" id="copyAllBtn">
-                        <i class="fas fa-copy"></i> Copy All Credentials
-                    </button>
-                </div>
-            </div>
-            
-            <div class="action-buttons" style="justify-content: center;">
-                <button type="button" class="btn" id="finishBtn">Finish</button>
-            </div>
-        </div>
-    </div>
-    
-    <footer>
-        <p>© 2023 Your Company Name. All rights reserved.</p>
-        <p>This service is powered by Meta's WhatsApp Business API.</p>
-    </footer>
-    
-    <script>
-        // Initialize variables
-        let currentStep = 1;
-        const totalSteps = 4;
-        
-        // DOM elements
-        const progressBar = document.getElementById('progressBar');
-        const nextBtn1 = document.getElementById('nextBtn1');
-        const backBtn2 = document.getElementById('backBtn2');
-        const nextBtn2 = document.getElementById('nextBtn2');
-        const backBtn3 = document.getElementById('backBtn3');
-        const completeBtn = document.getElementById('completeBtn');
-        const finishBtn = document.getElementById('finishBtn');
-        const whatsappAuthBtn = document.getElementById('whatsappAuthBtn');
-        const authLoader = document.getElementById('authLoader');
-        const copyAllBtn = document.getElementById('copyAllBtn');
-        
-        // Form fields
-        const businessName = document.getElementById('businessName');
-        const businessEmail = document.getElementById('businessEmail');
-        const businessPhone = document.getElementById('businessPhone');
-        const businessIndustry = document.getElementById('businessIndustry');
-        const businessDescription = document.getElementById('businessDescription');
-        const termsAgreement = document.getElementById('termsAgreement');
-        const displayName = document.getElementById('displayName');
-        const confirmDetails = document.getElementById('confirmDetails');
-        
-        // Error messages
-        const businessNameError = document.getElementById('businessNameError');
-        const businessEmailError = document.getElementById('businessEmailError');
-        const businessPhoneError = document.getElementById('businessPhoneError');
-        const businessIndustryError = document.getElementById('businessIndustryError');
-        const businessDescriptionError = document.getElementById('businessDescriptionError');
-        const termsAgreementError = document.getElementById('termsAgreementError');
-        const displayNameError = document.getElementById('displayNameError');
-        const confirmDetailsError = document.getElementById('confirmDetailsError');
-        
-        // Results fields
-        const timestampField = document.getElementById('timestampField');
-        const nameField = document.getElementById('nameField');
-        const businessAccountIdField = document.getElementById('businessAccountIdField');
-        const wabaIdField = document.getElementById('wabaIdField');
-        const accessTokenField = document.getElementById('accessTokenField');
-        const phoneIdField = document.getElementById('phoneIdField');
-        const appIdField = document.getElementById('appIdField');
-        const statusField = document.getElementById('statusField');
-        
-        // Initialize Account Kit (replace with your actual app ID)
-        // This is a placeholder - you'll need to implement the actual Meta authentication flow
-        AccountKit_OnInteractive = function() {
-            AccountKit.init({
-                appId: "6673587296096434", 
-                state: "csrf-protection-state", 
-                version: "v22.0",
-                fbAppEventsEnabled: true,
-                redirect: window.location.href
-            });
-        };
-        
-        // Load the Account Kit SDK
-        (function(d, s, id) {
-            var js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) return;
-            js = d.createElement(s); js.id = id;
-            js.src = "https://sdk.accountkit.com/en_US/sdk.js";
-            fjs.parentNode.insertBefore(js, fjs);
-        }(document, 'script', 'account-kit-jssdk'));
-        
-        // Step navigation functions
-        function updateProgressBar() {
-            const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
-            progressBar.style.width = `${progressPercentage}%`;
-            
-            // Update step indicators
-            for (let i = 1; i <= totalSteps; i++) {
-                const stepElement = document.getElementById(`step${i}`);
-                if (i < currentStep) {
-                    stepElement.classList.add('completed');
-                    stepElement.classList.remove('active');
-                } else if (i === currentStep) {
-                    stepElement.classList.add('active');
-                    stepElement.classList.remove('completed');
-                } else {
-                    stepElement.classList.remove('active', 'completed');
-                }
-            }
-            
-            // Show/hide step content
-            for (let i = 1; i <= totalSteps; i++) {
-                const stepContent = document.getElementById(`stepContent${i}`);
-                if (i === currentStep) {
-                    stepContent.classList.add('active');
-                } else {
-                    stepContent.classList.remove('active');
-                }
-            }
-        }
-        
-        function goToStep(step) {
-            if (step < 1 || step > totalSteps) return;
-            
-            // Validate before proceeding to next step
-            if (step > currentStep) {
-                if (currentStep === 1 && !validateStep1()) return;
-                if (currentStep === 2 && !validateStep2()) return;
-                if (currentStep === 3 && !validateStep3()) return;
-            }
-            
-            currentStep = step;
-            updateProgressBar();
-            
-            // Scroll to top of container
-            document.querySelector('.container').scrollIntoView({ behavior: 'smooth' });
-        }
-        
-        // Validation functions
-        function validateStep1() {
-            let isValid = true;
-            
-            // Reset error messages
-            businessNameError.style.display = 'none';
-            businessEmailError.style.display = 'none';
-            businessPhoneError.style.display = 'none';
-            businessIndustryError.style.display = 'none';
-            businessDescriptionError.style.display = 'none';
-            termsAgreementError.style.display = 'none';
-            
-            // Validate business name
-            if (!businessName.value.trim()) {
-                businessNameError.style.display = 'block';
-                isValid = false;
-            }
-            
-            // Validate email
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(businessEmail.value)) {
-                businessEmailError.style.display = 'block';
-                isValid = false;
-            }
-            
-            // Validate phone (simple validation - adjust as needed)
-            if (!businessPhone.value.trim() || businessPhone.value.trim().length < 8) {
-                businessPhoneError.style.display = 'block';
-                isValid = false;
-            }
-            
-            // Validate industry
-            if (!businessIndustry.value) {
-                businessIndustryError.style.display = 'block';
-                isValid = false;
-            }
-            
-            // Validate description
-            if (!businessDescription.value.trim()) {
-                businessDescriptionError.style.display = 'block';
-                isValid = false;
-            }
-            
-            // Validate terms agreement
-            if (!termsAgreement.checked) {
-                termsAgreementError.style.display = 'block';
-                isValid = false;
-            }
-            
-            return isValid;
-        }
-        
-        function validateStep2() {
-            // In a real implementation, you would check if authentication was successful
-            // For this demo, we'll assume it's valid if the next button is enabled
-            return !nextBtn2.disabled;
-        }
-        
-        function validateStep3() {
-            let isValid = true;
-            
-            // Reset error messages
-            displayNameError.style.display = 'none';
-            confirmDetailsError.style.display = 'none';
-            
-            // Validate display name
-            if (!displayName.value.trim()) {
-                displayNameError.style.display = 'block';
-                isValid = false;
-            }
-            
-            // Validate confirmation checkbox
-            if (!confirmDetails.checked) {
-                confirmDetailsError.style.display = 'block';
-                isValid = false;
-            }
-            
-            return isValid;
-        }
-        
-        // Event listeners for navigation buttons
-        nextBtn1.addEventListener('click', () => goToStep(2));
-        backBtn2.addEventListener('click', () => goToStep(1));
-        nextBtn2.addEventListener('click', () => goToStep(3));
-        backBtn3.addEventListener('click', () => goToStep(2));
-        completeBtn.addEventListener('click', () => {
-            if (validateStep3()) {
-                // In a real implementation, you would send the data to your server here
-                // For this demo, we'll simulate a successful connection
-                simulateSuccessfulConnection();
-                goToStep(4);
-            }
-        });
-        finishBtn.addEventListener('click', () => {
-            // In a real implementation, you might redirect or reset the form
-            alert('Onboarding process completed successfully!');
-        });
-        
-        // WhatsApp authentication button
-        whatsappAuthBtn.addEventListener('click', () => {
-            // Show loader
-            whatsappAuthBtn.disabled = true;
-            authLoader.style.display = 'block';
-            
-            // In a real implementation, this would initiate the Meta authentication flow
-            // For this demo, we'll simulate a successful authentication after a delay
-            setTimeout(() => {
-                // Hide loader
-                authLoader.style.display = 'none';
-                
-                // Simulate successful authentication
-                simulateAuthenticationSuccess();
-                
-                // Enable next button
-                nextBtn2.disabled = false;
-                
-                // Update UI to show authentication was successful
-                whatsappAuthBtn.innerHTML = '<i class="fas fa-check-circle"></i> Authenticated Successfully';
-                whatsappAuthBtn.style.backgroundColor = 'var(--success-color)';
-            }, 2000);
-        });
-        
-        // Copy functionality
-        document.querySelectorAll('.copyable').forEach(element => {
-            element.addEventListener('click', () => {
-                const textToCopy = element.querySelector('span').textContent;
-                navigator.clipboard.writeText(textToCopy).then(() => {
-                    // Show copied message
-                    element.classList.add('copied');
-                    setTimeout(() => {
-                        element.classList.remove('copied');
-                    }, 2000);
-                });
-            });
-        });
-        
-        // Copy all credentials
-        copyAllBtn.addEventListener('click', () => {
-            const credentials = {
-                Business_Account_ID: businessAccountIdField.querySelector('span').textContent,
-                WABA_ID: wabaIdField.querySelector('span').textContent,
-                Access_Token: accessTokenField.querySelector('span').textContent,
-                Phone_ID: phoneIdField.querySelector('span').textContent,
-                App_ID: appIdField.querySelector('span').textContent
-            };
-            
-            let textToCopy = '';
-            for (const [key, value] of Object.entries(credentials)) {
-                textToCopy += `${key}\t${value}\n`;
-            }
-            
-            navigator.clipboard.writeText(textToCopy.trim()).then(() => {
-                // Show copied message
-                const originalText = copyAllBtn.innerHTML;
-                copyAllBtn.innerHTML = '<i class="fas fa-check"></i> Copied All Credentials';
-                setTimeout(() => {
-                    copyAllBtn.innerHTML = originalText;
-                }, 2000);
-            });
-        });
-        
-        // Simulation functions for demo purposes
-        function simulateAuthenticationSuccess() {
-            // Auto-fill the fields that would come from the Meta API response
-            document.getElementById('phoneNumberId').value = '123456789012345';
-            document.getElementById('wabaId').value = '987654321098765';
-            document.getElementById('businessAccountId').value = '567890123456789';
-        }
-        
-        function simulateSuccessfulConnection() {
-            // Show results container
-            document.getElementById('resultsContainer').style.display = 'block';
-            
-            // Set current timestamp
-            const now = new Date();
-            timestampField.textContent = now.toISOString();
-            
-            // Set name from business info form
-            nameField.textContent = businessName.value.trim();
-            
-            // Set the values that would come from the Meta API response
-            businessAccountIdField.querySelector('span').textContent = document.getElementById('businessAccountId').value;
-            wabaIdField.querySelector('span').textContent = document.getElementById('wabaId').value;
-            accessTokenField.querySelector('span').textContent = 'EAADZAZA... (your_access_token)';
-            phoneIdField.querySelector('span').textContent = document.getElementById('phoneNumberId').value;
-            appIdField.querySelector('span').textContent = '6673587296096434';
-            
-            // Set status
-            statusField.textContent = 'Active';
-        }
-        
-        // Initialize the progress bar
-        updateProgressBar();
-    </script>
+
+<h1>WhatsApp Cloud API Signup</h1>
+
+<p>Click the button below to sign up your WhatsApp Business Account using Meta WhatsApp Cloud API:</p>
+
+<button id="signupButton">Sign Up with WhatsApp Cloud API</button>
+
+<div id="infoBox" style="display:none;">
+    <div><span class="uncopyable">Timestamp:</span> <span id="timestamp"></span></div>
+    <div><span class="uncopyable">Name:</span> <span id="name"></span></div>
+    <div><span class="uncopyable">Status:</span> <span id="status"></span></div>
+    <pre id="copyableInfo"></pre>
+    <button id="copyButton">Copy Info</button>
+</div>
+
+<script>
+const appId = '6673587296096434'; // Your App ID
+const redirectUri = 'https://cloudapi.srlines.net'; // Your Redirect URI
+const scopes = 'business_management,whatsapp_business_management,whatsapp_messaging,public_profile';
+
+document.getElementById('signupButton').addEventListener('click', () => {
+    const authUrl = `https://www.facebook.com/v22.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&response_type=token`;
+    window.open(authUrl);
+});
+
+// Simulate OAuth Return Example (Replace this block with your server-side handling of token return)
+window.onload = function() {
+    // Mock sample data as if returned after successful onboarding (Replace this with your real API response)
+    const urlParams = new URLSearchParams(window.location.hash.substr(1));
+    const accessToken = urlParams.get('access_token') || 'EAAGb...sample...token'; // Replace in real case
+    const businessAccountId = '123456789101112';
+    const wabaId = '123456789987654';
+    const phoneId = '987654321234567';
+    const status = 'Connected';
+    const name = 'Client ABC'; // dynamic or hard-coded
+    const appId = '6673587296096434';
+
+    if (accessToken) {
+        const timestamp = new Date().toLocaleString();
+
+        document.getElementById('timestamp').textContent = timestamp;
+        document.getElementById('name').textContent = name;
+        document.getElementById('status').textContent = status;
+
+        const copyableContent = 
+`Business_Account_ID: ${businessAccountId}
+WABA_ID: ${wabaId}
+Access_Token: ${accessToken}
+Phone_ID: ${phoneId}
+App_ID: ${appId}`;
+
+        document.getElementById('copyableInfo').textContent = copyableContent;
+        document.getElementById('infoBox').style.display = 'block';
+    }
+};
+
+document.getElementById('copyButton').addEventListener('click', () => {
+    const text = document.getElementById('copyableInfo').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Info copied to clipboard!');
+    });
+});
+</script>
+
 </body>
 </html>
