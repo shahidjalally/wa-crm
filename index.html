@@ -49,11 +49,42 @@
     .message-box a:hover {
       text-decoration: underline;
     }
+    .video-container {
+      position: relative;
+      padding-bottom: 56.25%; /* 16:9 aspect ratio */
+      height: 0;
+      overflow: hidden;
+      max-width: 100%;
+      background: #000;
+      margin: 30px auto;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    .video-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .video-caption {
+      margin: 15px 0;
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    }
   </style>
 </head>
 <body>
 
-<h2>WhatsApp Cloud API Embedded Signup</h2>
+<h2>WhatsApp Cloud API Signup Wizard</h2>
+
+<div class="video-caption">How to Create WhatsApp Cloud API Account in 5 Minutes</div>
+<div class="video-container">
+  <iframe src="https://www.youtube.com/embed/c0xi7QWOnTM" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
 
 <button onclick="startWhatsAppSignup()">Start WhatsApp Setup Wizard</button>
 
