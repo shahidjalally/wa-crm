@@ -293,5 +293,82 @@
             });
         });
     </script>    
+<!-- WhatsApp Chat Support Widget (Advanced Version) -->
+<a href="https://wa.me/923283897926?text=mujhay%20apni%20service%20aur%20eskay%20istamal%20k%20barayin%20mein%20mukhtasir%20mger%20jameh%20tfsil%20batayin" 
+   target="_blank" 
+   id="whatsapp-chat-widget">
+    <span class="chat-text">Humaray Sath Rabta Karen!</span>
+    <div class="icon-pulse">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="Chat on WhatsApp">
+    </div>
+</a>
+
+<style>
+  #whatsapp-chat-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    font-family: Arial, sans-serif;
+  }
+
+  .chat-text {
+    margin-right: 10px;
+    background-color: #25D366;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    white-space: nowrap;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+  }
+
+  .icon-pulse {
+    position: relative;
+    width: 60px;
+    height: 60px;
+  }
+
+  .icon-pulse::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background-color: rgba(37, 211, 102, 0.5);
+    animation: pulse 1.5s infinite;
+    z-index: 1;
+  }
+
+  .icon-pulse img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    padding: 10px;
+    background-color: #25D366;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    position: relative;
+    z-index: 2;
+  }
+
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+      opacity: 0.7;
+    }
+    50% {
+      transform: scale(1.4);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 0.7;
+    }
+  }
+</style>
 </body>
 </html>
