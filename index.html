@@ -139,7 +139,7 @@
   
   <div class="copy-field">
     <label>Business Account ID:</label>
-    <span class="value" id="business-id-field">$waba_id</span>
+    <span class="value" id="business-id-field">$business_id</span>
     <button class="copy-btn" onclick="copyToClipboard('business-id-field')">Copy</button>
   </div>
   
@@ -186,9 +186,10 @@ function sessionInfoListener(event) {
         const data = JSON.parse(event.data);
         if (data.type === "WA_EMBEDDED_SIGNUP") {
             if (data.event === "FINISH") {
-                const { phone_number_id, waba_id } = data.data;
-                console.log(`Phone number ID: ${phone_number_id}, WABA ID: ${waba_id}`);
+                const { phone_number_id, waba_id, business_id } = data.data;
+                console.log(`Phone number ID: ${phone_number_id}, WABA ID: ${waba_id}, Business ID: ${business_id}`);
                 document.getElementById('waba-id-field').textContent = waba_id;
+                document.getElementById('business-id-field').textContent = business_id;
                 document.getElementById('phone-id-field').textContent = phone_number_id;
                 document.getElementById('successMessage').style.display = 'block';
             }
