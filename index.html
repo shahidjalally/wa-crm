@@ -85,6 +85,40 @@
       text-align: left;
       display: none;
     }
+    .copy-field {
+      margin: 10px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f5f5f5;
+      padding: 8px 12px;
+      border-radius: 5px;
+      font-family: monospace;
+    }
+    .copy-field label {
+      font-weight: bold;
+      margin-right: 10px;
+      color: #128C7E;
+    }
+    .copy-field .value {
+      flex-grow: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .copy-btn {
+      background: #25D366;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      padding: 4px 8px;
+      cursor: pointer;
+      margin-left: 10px;
+      font-size: 12px;
+    }
+    .copy-btn:hover {
+      background: #128C7E;
+    }
   </style>
 </head>
 <body>
@@ -95,11 +129,42 @@
 
 <div id="successMessage" class="message-box">
   <h3>🎉 Congratulations!</h3>
-  <p>Your WhatsApp Cloud API signup process completed successfully.</p>
+  <p>Your WhatsApp Cloud API credentials:</p>
+  
+  <div class="copy-field">
+    <label>WhatsApp business account ID:</label>
+    <span class="value" id="waba-id-field">$waba_id</span>
+    <button class="copy-btn" onclick="copyToClipboard('waba-id-field')">Copy</button>
+  </div>
+  
+  <div class="copy-field">
+    <label>Business Account ID:</label>
+    <span class="value" id="business-id-field">$waba_id</span>
+    <button class="copy-btn" onclick="copyToClipboard('business-id-field')">Copy</button>
+  </div>
+  
+  <div class="copy-field">
+    <label>Meta access Token:</label>
+    <span class="value" id="token-field">EAAREgAk8eTYBO2BZAEwZBUu8jDVsKxGE2hxBPLfQh2Ic2fhJZBLZBrFTSVWZCznRZBUi9CKKEZBTVDJMbW743fzwP5BCHPIZClYWY1cIFIEc093wmSP5165iiFb4eY2tWLsK6Hq5oZAgrWqJlsVZCJZCZBMecUajppyjJgqcrPM93zc8gW8BX1aqt5AsbxSC5ezyqhsU6QZDZD</span>
+    <button class="copy-btn" onclick="copyToClipboard('token-field')">Copy</button>
+  </div>
+  
+  <div class="copy-field">
+    <label>WhatsApp phone ID:</label>
+    <span class="value" id="phone-id-field">$phone_number_id</span>
+    <button class="copy-btn" onclick="copyToClipboard('phone-id-field')">Copy</button>
+  </div>
+  
+  <div class="copy-field">
+    <label>App ID:</label>
+    <span class="value" id="app-id-field">6673587296096434</span>
+    <button class="copy-btn" onclick="copyToClipboard('app-id-field')">Copy</button>
+  </div>
+  
   <div id="signupDetails"></div>
   <p>As the next step, please visit: <br>
     <a href="https://crm.srlines.net/user">https://crm.srlines.net/user</a><br>
-    to Signup/Login and start enjoying Meta Official Cloud API.</p>
+    to Signup/Login and enter above credentials into respective fields.</p>
 </div>
 
 
@@ -123,6 +188,9 @@ function sessionInfoListener(event) {
             if (data.event === "FINISH") {
                 const { phone_number_id, waba_id } = data.data;
                 console.log(`Phone number ID: ${phone_number_id}, WABA ID: ${waba_id}`);
+                document.getElementById('waba-id-field').textContent = waba_id;
+                document.getElementById('phone-id-field').textContent = phone_number_id;
+                document.getElementById('successMessage').style.display = 'block';
             }
             else {
                 const { current_step } = data.data;
@@ -132,6 +200,20 @@ function sessionInfoListener(event) {
     } catch {
         console.log("Non JSON Response", event.data);
     }
+}
+
+function copyToClipboard(elementId) {
+    const element = document.getElementById(elementId);
+    const text = element.textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = element.nextElementSibling;
+        btn.textContent = 'Copied!';
+        setTimeout(() => {
+            btn.textContent = 'Copy';
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+    });
 }
 
 window.fbAsyncInit = function () {
@@ -336,7 +418,7 @@ function launchWhatsAppSignup() {
         });
     </script>    
 <!-- WhatsApp Chat Support Widget (Advanced Version) -->
-<a href="https://wa.me/923283897926?text=mujhay%20apni%20service%20aur%20eskay%20istamal%20k%20barayin%20mein%20mukhtasir%20mger%20jameh%20tfsil%20batayin" 
+<a href="https://wa.me/923283897926?text=Hi" 
    target="_blank" 
    id="whatsapp-chat-widget">
     <span class="chat-text">Humaray Sath Rabta Karen!</span>
