@@ -113,7 +113,7 @@
   const APP_ID = '6673587296096434';
   const CONFIG_ID = '1148059857348036';
 
-  // Load the Facebook SDK with WhatsApp Embedded Signup support
+  // First load the main Facebook SDK
   (function(d, s, id) {
     var js, fjs = d.getElementsByTagName(s)[0];
     if (d.getElementById(id)) return;
@@ -121,6 +121,18 @@
     js.src = "https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v23.0&appId=" + APP_ID;
     fjs.parentNode.insertBefore(js, fjs);
   }(document, 'script', 'facebook-jssdk'));
+
+  // Then load the WhatsApp Embedded Signup extension
+  (function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "https://connect.facebook.net/en_US/whatsappembeddedsignup.js";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'whatsapp-jssdk'));
+
+  let isWhatsAppAPIReady = false;
+  let isFBSDKReady = false;
 
   window.fbAsyncInit = function() {
     FB.init({
@@ -131,30 +143,36 @@
       status: true
     });
     
-    console.log('✅ FB SDK Initialized with WhatsApp Embedded Signup support');
-    
-    // Check if WhatsApp Embedded Signup is available
-    if (typeof FB.WhatsAppEmbeddedSignup !== 'undefined') {
-      console.log('WhatsApp Embedded Signup API is available');
-    } else {
-      console.error('WhatsApp Embedded Signup API is not available');
-    }
+    isFBSDKReady = true;
+    console.log('✅ Main FB SDK Initialized');
+    checkAPIsReady();
   };
+
+  window.waAsyncInit = function() {
+    isWhatsAppAPIReady = true;
+    console.log('✅ WhatsApp Embedded Signup API Ready');
+    checkAPIsReady();
+  };
+
+  function checkAPIsReady() {
+    if (isFBSDKReady && isWhatsAppAPIReady) {
+      console.log('✅ Both APIs are ready to use');
+      // You could enable your signup button here if you want
+    }
+  }
 
   function startWhatsAppSignup() {
     console.log('🚀 Starting WhatsApp Embedded Signup Wizard...');
     
-    // First ensure the SDK is loaded
-    if (typeof FB === 'undefined') {
-      console.error('Facebook SDK not loaded yet');
-      alert('Please wait while we load the Facebook SDK...');
+    if (!isFBSDKReady || !isWhatsAppAPIReady) {
+      console.error('APIs not fully loaded yet');
+      alert('Please wait while we load all required components...');
       return;
     }
-    
-    // Check if WhatsApp Embedded Signup is available
+
     if (typeof FB.WhatsAppEmbeddedSignup === 'undefined') {
-      console.error('WhatsApp Embedded Signup not available in this SDK version');
-      alert('This feature requires the latest Facebook SDK. Please try again.');
+      console.error('WhatsApp Embedded Signup API still not available');
+      alert('This feature requires WhatsApp Embedded Signup support. Please try refreshing the page.');
       return;
     }
     
@@ -174,31 +192,32 @@
             onComplete: function(response) {
               console.log('Embedded Signup Completed:', response);
               
-              // Extract WABA ID and Phone ID
-              const wabaId = response.wabaId;
-              const phoneId = response.phoneId;
-              
-              // Display success message
-              document.getElementById('successMessage').style.display = 'block';
-              
-              // Display the IDs in console and on page
-              console.log('✅ WhatsApp Business Account ID:', wabaId);
-              console.log('✅ WhatsApp Phone Number ID:', phoneId);
-              
-              const detailsDiv = document.getElementById('signupDetails');
-              detailsDiv.innerHTML = `
-                <strong>Signup Details:</strong><br>
-                WhatsApp Business Account ID: ${wabaId}<br>
-                Phone Number ID: ${phoneId}
-              `;
-              detailsDiv.style.display = 'block';
-              
-              // Track successful signup event
-              trackSignupSuccess(wabaId, phoneId);
+              if (response.wabaId && response.phoneId) {
+                // Display success message
+                document.getElementById('successMessage').style.display = 'block';
+                
+                // Display the IDs in console and on page
+                console.log('✅ WhatsApp Business Account ID:', response.wabaId);
+                console.log('✅ WhatsApp Phone Number ID:', response.phoneId);
+                
+                const detailsDiv = document.getElementById('signupDetails');
+                detailsDiv.innerHTML = `
+                  <strong>Signup Details:</strong><br>
+                  WhatsApp Business Account ID: ${response.wabaId}<br>
+                  Phone Number ID: ${response.phoneId}
+                `;
+                detailsDiv.style.display = 'block';
+                
+                // Track successful signup event
+                trackSignupSuccess(response.wabaId, response.phoneId);
+              } else {
+                console.error('Missing WABA ID or Phone ID in response:', response);
+                alert('Signup completed but we couldn\'t retrieve your account details. Please check your WhatsApp Business Account in Meta Business Manager.');
+              }
             },
             onError: function(error) {
               console.error('Embedded Signup Error:', error);
-              alert('Error during signup: ' + error.message);
+              alert('Error during signup: ' + (error.message || 'Unknown error'));
             }
           });
           
@@ -220,9 +239,8 @@
   }
   
   function trackSignupSuccess(wabaId, phoneId) {
-    // Here you can add code to track the successful signup
     console.log('Tracking successful signup:', {wabaId, phoneId});
-    // You can add your analytics or conversion tracking here
+    // Add your tracking implementation here
   }
 </script>
     <!-- Facebook Pixel Code -->
