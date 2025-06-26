@@ -188,10 +188,25 @@ function sessionInfoListener(event) {
             if (data.event === "FINISH") {
                 const { phone_number_id, waba_id, business_id } = data.data;
                 console.log(`Phone number ID: ${phone_number_id}, WABA ID: ${waba_id}, Business ID: ${business_id}`);
-                document.getElementById('waba-id-field').textContent = waba_id;
-                document.getElementById('business-id-field').textContent = business_id;
-                document.getElementById('phone-id-field').textContent = phone_number_id;
-                document.getElementById('successMessage').style.display = 'block';
+
+				// Send to backend
+				fetch('https://waba-signup-api-backend-863732001414.us-central1.run.app/api/create-system-user', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ phone_number_id, waba_id, business_id })
+				})
+				.then(res => res.json())
+				.then(response => {
+					// Update UI
+					document.getElementById('waba-id-field').textContent = response.waba_id;
+					document.getElementById('business-id-field').textContent = response.business_id;
+					document.getElementById('token-field').textContent = response.access_token;
+					document.getElementById('phone-id-field').textContent = response.phone_number_id;
+					document.getElementById('successMessage').style.display = 'block';
+				})
+				.catch(error => console.error('Failed to create system user:', error));
             }
             else {
                 const { current_step } = data.data;
