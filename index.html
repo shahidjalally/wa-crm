@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WhatsApp Cloud API Signup Wizard</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -144,21 +145,9 @@
   </div>
   
   <div class="copy-field">
-    <label>Meta access Token:</label>
-    <span class="value" id="token-field">EAAREgAk8eTYBO2BZAEwZBUu8jDVsKxGE2hxBPLfQh2Ic2fhJZBLZBrFTSVWZCznRZBUi9CKKEZBTVDJMbW743fzwP5BCHPIZClYWY1cIFIEc093wmSP5165iiFb4eY2tWLsK6Hq5oZAgrWqJlsVZCJZCZBMecUajppyjJgqcrPM93zc8gW8BX1aqt5AsbxSC5ezyqhsU6QZDZD</span>
-    <button class="copy-btn" onclick="copyToClipboard('token-field')">Copy</button>
-  </div>
-  
-  <div class="copy-field">
     <label>WhatsApp phone ID:</label>
     <span class="value" id="phone-id-field">$phone_number_id</span>
     <button class="copy-btn" onclick="copyToClipboard('phone-id-field')">Copy</button>
-  </div>
-  
-  <div class="copy-field">
-    <label>App ID:</label>
-    <span class="value" id="app-id-field">6673587296096434</span>
-    <button class="copy-btn" onclick="copyToClipboard('app-id-field')">Copy</button>
   </div>
   
   <div id="signupDetails"></div>
@@ -188,25 +177,10 @@ function sessionInfoListener(event) {
             if (data.event === "FINISH") {
                 const { phone_number_id, waba_id, business_id } = data.data;
                 console.log(`Phone number ID: ${phone_number_id}, WABA ID: ${waba_id}, Business ID: ${business_id}`);
-
-				// Send to backend
-				fetch('https://waba-signup-api-backend-863732001414.us-central1.run.app/api/create-system-user', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({ phone_number_id, waba_id, business_id })
-				})
-				.then(res => res.json())
-				.then(response => {
-					// Update UI
-					document.getElementById('waba-id-field').textContent = response.waba_id;
-					document.getElementById('business-id-field').textContent = response.business_id;
-					document.getElementById('token-field').textContent = response.access_token;
-					document.getElementById('phone-id-field').textContent = response.phone_number_id;
-					document.getElementById('successMessage').style.display = 'block';
-				})
-				.catch(error => console.error('Failed to create system user:', error));
+                document.getElementById('waba-id-field').textContent = waba_id;
+                document.getElementById('business-id-field').textContent = business_id;
+                document.getElementById('phone-id-field').textContent = phone_number_id;
+                document.getElementById('successMessage').style.display = 'block';
             }
             else {
                 const { current_step } = data.data;
