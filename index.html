@@ -279,7 +279,17 @@ function sessionInfoListener(event) {
     if (event.origin !== "https://www.facebook.com") return;
     try {
         console.log("event.data", event.data);
-        const data = JSON.parse(event.data);
+
+        let data = event.data;
+        if (typeof data === "string") {
+            try {
+                data = JSON.parse(data);
+            } catch {
+                console.warn("Invalid JSON string received:", data);
+                return;
+            }
+        }
+
         if (data.type === "WA_EMBEDDED_SIGNUP") {
             if (data.event === "FINISH") {
                 const { phone_number_id, waba_id, business_id } = data.data;
@@ -288,8 +298,7 @@ function sessionInfoListener(event) {
                 document.getElementById('business-id-field').textContent = business_id;
                 document.getElementById('phone-id-field').textContent = phone_number_id;
                 document.getElementById('successMessage').style.display = 'block';
-            }
-            else {
+            } else {
                 const { current_step } = data.data;
                 console.log(`Cancelled at step: ${current_step}`);
             }
