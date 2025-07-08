@@ -279,32 +279,22 @@ function sessionInfoListener(event) {
     if (event.origin !== "https://www.facebook.com") return;
     try {
         console.log("event.data", event.data);
-
-        let data = event.data;
-
-        // Try parsing if it's a string
-        if (typeof data === "string") {
-            try {
-                data = JSON.parse(data);
-            } catch {
-                console.warn("Invalid JSON string received:", data);
-                return; // Skip non-JSON strings like query strings
-            }
-        }
-
-        if (data.type === "WA_EMBEDDED_SIGNUP" && data.event === "FINISH") {
-            const { phone_number_id, waba_id, business_id } = data.data || {};
-            console.log(`Phone number ID: ${phone_number_id}, WABA ID: ${waba_id}, Business ID: ${business_id}`);
-
-            // ✅ Show success only if all 3 are present
+        const data = JSON.parse(event.data);
+        const { phone_number_id, waba_id, business_id } = data.data;
+        console.log(`Phone number ID: ${phone_number_id}, WABA ID: ${waba_id}, Business ID: ${business_id}`);
+        if (phone_number_id && waba_id && business_id) {
             if (phone_number_id && waba_id && business_id) {
                 document.getElementById('waba-id-field').textContent = waba_id;
                 document.getElementById('business-id-field').textContent = business_id;
                 document.getElementById('phone-id-field').textContent = phone_number_id;
                 document.getElementById('successMessage').style.display = 'block';
             }
+            else {
+                const { current_step } = data.data;
+                console.log(`Cancelled at step: ${current_step}`);
+            }
         }
-    } catch (error) {
+    } catch {
         console.log("Non JSON Response", event.data);
     }
 }
