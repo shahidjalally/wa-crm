@@ -276,25 +276,37 @@ const button = document.querySelector("[data-facebook-login-btn]");
 button.addEventListener("click", launchWhatsAppSignup);
 
 function sessionInfoListener(event) {
+    // First check if the origin is facebook.com
     if (event.origin !== "https://www.facebook.com") return;
+    
     try {
         console.log("event.data", event.data);
-        const data = JSON.parse(event.data);
-        const { phone_number_id, waba_id, business_id } = data.data;
-        console.log(`Phone number ID: ${phone_number_id}, WABA ID: ${waba_id}, Business ID: ${business_id}`);
-        if (phone_number_id && waba_id && business_id) {
-            if (phone_number_id && waba_id && business_id) {
+        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        
+        if (data.type === "WA_EMBEDDED_SIGNUP") {
+            if (data.event === "FINISH") {
+                const { phone_number_id, waba_id, business_id } = data.data;
+                console.log(`Phone number ID: ${phone_number_id}, WABA ID: ${waba_id}, Business ID: ${business_id}`);
+                
+                // Update the fields
                 document.getElementById('waba-id-field').textContent = waba_id;
                 document.getElementById('business-id-field').textContent = business_id;
                 document.getElementById('phone-id-field').textContent = phone_number_id;
-                document.getElementById('successMessage').style.display = 'block';
-            }
-            else {
+                
+                // Show the success message
+                const successMessage = document.getElementById('successMessage');
+                successMessage.style.display = 'block';
+                successMessage.scrollIntoView({ behavior: 'smooth' });
+                
+                // Also show the signup details if needed
+                document.getElementById('signupDetails').style.display = 'block';
+            } else {
                 const { current_step } = data.data;
                 console.log(`Cancelled at step: ${current_step}`);
             }
         }
-    } catch {
+    } catch (e) {
+        console.log("Error processing message:", e);
         console.log("Non JSON Response", event.data);
     }
 }
