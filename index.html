@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -225,7 +226,7 @@
   Apni automation khud setup karein:<br>
   🌐 cloudapi.srlines.net<br>
   🛠 10 din bilkul FREE!<br><br>
-  Apni chats ka future secure karein – abhi start karein!
+  Apni chats ka future secure karein – abhi start karein!
 </p>  
 </div>
 <button data-facebook-login-btn class="facebook-login-btn">Start WhatsApp Setup Wizard</button>
@@ -238,18 +239,6 @@
     <label>WhatsApp business account ID:</label>
     <span class="value" id="waba-id-field">$waba_id</span>
     <button class="copy-btn" onclick="copyToClipboard('waba-id-field')">Copy</button>
-  </div>
-  
-  <div class="copy-field">
-    <label>Business Account ID:</label>
-    <span class="value" id="business-id-field">$business_id</span>
-    <button class="copy-btn" onclick="copyToClipboard('business-id-field')">Copy</button>
-  </div>
-  
-  <div class="copy-field">
-    <label>WhatsApp phone ID:</label>
-    <span class="value" id="phone-id-field">$phone_number_id</span>
-    <button class="copy-btn" onclick="copyToClipboard('phone-id-field')">Copy</button>
   </div>
   
   <div id="signupDetails"></div>
@@ -282,28 +271,19 @@ function sessionInfoListener(event) {
     try {
         console.log("event.data", event.data);
         const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-        
-        if (data.type === "WA_EMBEDDED_SIGNUP") {
-            if (data.event === "FINISH") {
-                const { phone_number_id, waba_id, business_id } = data.data;
-                console.log(`Phone number ID: ${phone_number_id}, WABA ID: ${waba_id}, Business ID: ${business_id}`);
+        const { phone_number_id, waba_id, business_id } = data.data;
+        console.log(`Phone number ID: ${phone_number_id}, WABA ID: ${waba_id}, Business ID: ${business_id}`);        
+        if (waba_id) {
+            // Update the field
+            document.getElementById('waba-id-field').textContent = waba_id;
                 
-                // Update the fields
-                document.getElementById('waba-id-field').textContent = waba_id;
-                document.getElementById('business-id-field').textContent = business_id;
-                document.getElementById('phone-id-field').textContent = phone_number_id;
+            // Show the success message
+            const successMessage = document.getElementById('successMessage');
+            successMessage.style.display = 'block';
+            successMessage.scrollIntoView({ behavior: 'smooth' });
                 
-                // Show the success message
-                const successMessage = document.getElementById('successMessage');
-                successMessage.style.display = 'block';
-                successMessage.scrollIntoView({ behavior: 'smooth' });
-                
-                // Also show the signup details if needed
-                document.getElementById('signupDetails').style.display = 'block';
-            } else {
-                const { current_step } = data.data;
-                console.log(`Cancelled at step: ${current_step}`);
-            }
+            // Also show the signup details if needed
+            document.getElementById('signupDetails').style.display = 'block';
         }
     } catch (e) {
         console.log("Error processing message:", e);
