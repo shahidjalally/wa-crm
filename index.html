@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="description" content="Get your WhatsApp Business API solution with SRLines - Pakistan's first Meta Verified Tech Provider. Free 10-day trial available.">
-  <title>WhatsApp Cloud API Solution | SRLines - Meta Verified Provider</title>
+  <title>WhatsApp Cloud API Solution | SRLines - Meta Verified Tech Partner</title>
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -472,7 +472,7 @@
   <div class="container">
     <div class="header">
       <h1>WhatsApp Business API Solution</h1>
-      <h2>Pakistan's First Meta Verified Tech Provider</h2>
+      <h2>Pakistan's First Meta Verified Tech Partner</h2>
     </div>
     
     <div class="content-section">
@@ -689,7 +689,57 @@
     window.addEventListener("message", sessionInfoListener);
     const button = document.querySelector("[data-facebook-login-btn]");
     button.addEventListener("click", launchWhatsAppSignup);
+  // Function to fire Meta SignUp event
+  async function fireMetaSignUpEvent(wabaId) {
+    try {
+      const payload = {
+        pixelId: '1426121475492328',
+        accessToken: 'EAALwBZBVJSZAgBO42LMioKD7dZB17ENvRFPONEflZCpNBVoZB6kdtaLkeWLLtjqd3vNsHS68CqCcd2KZBuglaoNGZA8Pi0Wdp1fqDOE60NFbN1dnSsb68vsZCfLf4AcWjevSHnOmstgtrcGb5HpjJ4DSrz3mh6OY748XniJ9rrODCZCz3vj5ZCfmodnvN2blI32Qzg5QZDZD',
+        eventName: 'CompleteRegistration',
+        eventId: `signup_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        eventSourceUrl: window.location.href,
+        userData: {
+          client_user_agent: navigator.userAgent,
+          client_ip_address: await fetch('https://api.ipify.org?format=json')
+            .then(res => res.json()).then(data => data.ip).catch(() => ''),
+          fbc: getFbcCookie(),
+          fbp: getFbpCookie()    
+        },
+        customData: {
+          content_name: 'WhatsApp Business API Registration',
+          content_category: 'Sign Up',
+          status: 'successful',
+          waba_id: wabaId,
+          currency: 'PKR',
+          value: 0
+        }
+      };
 
+      const response = await fetch(
+        'https://us-central1-onex-time-plus-static-website.cloudfunctions.net/sendMetaEvent',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }
+      );
+
+      if (!response.ok) throw new Error(await response.text());
+      console.log('Meta SignUp event sent:', await response.json());
+      
+      // Also fire the standard Facebook Pixel event
+      fbq('track', 'CompleteRegistration', {
+        content_name: 'WhatsApp Business API Registration',
+        status: 'successful',
+        waba_id: wabaId
+      });
+      
+    } catch (error) {
+      console.error('Error sending Meta SignUp event:', error);
+    }
+  }
+
+  // Update the sessionInfoListener function to trigger the event
     function sessionInfoListener(event) {
         // First check if the origin is facebook.com
         if (event.origin !== "https://www.facebook.com") return;
@@ -710,6 +760,10 @@
                       
                 // Also show the signup details if needed
                 document.getElementById('signupDetails').style.display = 'block';
+				
+				// Fire the Meta SignUp event
+				fireMetaSignUpEvent(waba_id);
+		
             }
         } catch (e) {
             console.log("Error processing message:", e);
