@@ -458,6 +458,14 @@
       justify-content: center;
       gap: 15px;
       margin: 20px 0;
+	  flex-wrap: wrap;
+    }
+
+    @media (max-width: 480px) {
+      .countdown-timer {
+        gap: 8px;
+        margin: 10px 0;
+      }
     }
     
     .countdown-unit {
@@ -638,6 +646,44 @@
     }
     
     .trust-badge span {
+      color: var(--white);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    /* Client Badges */
+    .client-badges {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 80px;
+      margin: 40px 0;
+      padding: 20px;
+      background: rgba(128, 0, 0, 0.8);
+      border-radius: 12px;
+    }
+    
+    .client-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      transition: transform 0.3s ease;
+    }
+    
+    .client-badge:hover {
+      transform: translateY(-5px);
+    }
+    
+    .client-badge img {
+      height: 60px;
+      width: auto;
+      margin-bottom: 10px;
+      filter: brightness(0.4) invert(1);
+    }
+    
+    .client-badge span {
       color: var(--white);
       font-size: 0.9rem;
       text-align: center;
@@ -868,6 +914,7 @@
       </div>
       
       <!-- Trust Badges -->
+      <p align="center"><b>PARTNERSHIPS WITH</b></p>
       <div class="trust-badges">
         <a href="/meta-verified-partner-ss.png" target="_blank" class="trust-badge">
           <img src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg" style="width:180px;" alt="Meta Verified">
@@ -888,6 +935,31 @@
         <a href="https://srlines.net/wa-wcrm.zip" target="_blank" class="trust-badge">
           <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/WooCommerce2025_logo.svg/250px-WooCommerce2025_logo.svg.png" style="width:120px;" alt="WooCommerce Plugin">
           <span>WooCommerce Plugin</span>
+        </a>
+      </div>
+
+      <!-- Clients Database -->
+      <p align="center"><b>OUR CLIENTS</b></p>
+      <div class="client-badges">
+		<a href="https://rebc.com.pk" target="_blank" class="client-badge">
+          <img src="https://rebc.com.pk/wp-content/uploads/2024/03/final.png" style="width:120px;" alt="REBC-ISLAMABAD">
+          <span>REBC ISLAMABAD</span>
+        </a>
+        <a href="https://www.peira.gov.pk/" target="_blank" class="client-badge">
+          <img src="https://www.peira.gov.pk/assets/img/peira-logo.png" style="width:120px;" alt="ICT-PIERA">
+          <span>ICT-PEIRA</span>
+        </a>
+        <a href="https://glowbeauty.pk/" target="_blank" class="client-badge">
+          <img src="https://glowbeauty.pk/cdn/shop/files/glowbeauty_logo_black_1900x950_ppi1500_093afb16-51e1-477c-90ea-ae3733597942_410x__1_-removebg-preview.png?v=1750422568&width=370" style="width:120px;" alt="GlowBeauty">
+          <span>GlowBeauty.Pk</span>
+        </a>
+        <a href="https://pakofficialpanel.com/" target="_blank" class="client-badge">
+          <img src="https://cdn.blazepanel.com/public/YaoMe7/48ac7dac294c14693a3b0bdf009e4702.png" style="width:120px;" alt="Pak Official Panel">
+          <span>SMM Panel</span>
+        </a>
+        <a href="https://www.peira.gov.pk/" target="_blank" class="client-badge">
+          <img src="https://www.peira.gov.pk/assets/img/peira-logo.png" style="width:120px;" alt="ICT-PIERA">
+          <span>ICT-PEIRA</span>
         </a>
       </div>
       
